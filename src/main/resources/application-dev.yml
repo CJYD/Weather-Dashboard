@@ -1,0 +1,12 @@
+# Development Profile Configuration
+spring:
+  thymeleaf:
+    cache: false
+  devtools:
+    restart:
+      enabled: true
+
+logging:
+  level:
+    dev.cj.weather_dashboard: TRACE
+    org.springframework.web.reactive.function.client: DEBUG

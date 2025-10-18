@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+    <div class="container-fluid">
+        <!-- Header -->
+        <header class="text-center py-4">
+            <h1 class="display-4"><i class="fas fa-cloud-sun"></i> Weather Dashboard</h1>
+            <p class="lead">Real-time weather information powered by OpenWeatherMap</p>
+        </header>
+
+        <!-- Search Bar -->
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-8 col-lg-6">
+                <form action="/weather" method="get" class="search-form">
+                    <div class="input-group input-group-lg shadow-sm">
+                        <input type="text"
+                               class="form-control"
+                               name="city"
+                               placeholder="Enter city name (e.g., London, New York)"
+                               required
+                               th:value="${searchedCity}">
+                        <select class="form-select" name="unit" style="max-width: 150px;">
+                            <option th:each="u : ${temperatureUnits}"
+                                    th:value="${u}"
+                                    th:text="${u.symbol}"
+                                    th:selected="${u == selectedUnit}"></option>
+                        </select>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Access Cities -->
+        <div class="row justify-content-center mb-4" th:if="${defaultCities}">
+            <div class="col-md-10">
+                <div class="text-center mb-2">
+                    <small class="text-muted">Quick access:</small>
+                </div>
+                <div class="d-flex flex-wrap justify-content-center gap-2">
+                    <a th:each="defaultCity : ${defaultCities}"
+                       th:href="@{/weather(city=${defaultCity})}"
+                       class="btn btn-outline-secondary btn-sm">
+                        <span th:text="${defaultCity}"></span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Weather Display -->
+        <div th:if="${weather}" class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Main Weather Card -->
+                <div class="card weather-card shadow-lg mb-4" th:attr="data-condition=${weather.condition}">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-4 text-center">
+                                <img th:src="@{https://openweathermap.org/img/wn/{icon}@4x.png(icon=${weather.icon})}"
+                                     alt="Weather icon"
+                                     class="weather-icon">
+                                <h2 class="mb-0" th:text="${weather.cityName + ', ' + weather.country}"></h2>
+                                <p class="text-muted mb-0" th:text="${#temporals.format(weather.timestamp, 'MMM dd, yyyy HH:mm')}"></p>
+                            </div>
+                            <div class="col-md-4 text-center">
+                                <div class="temperature-display">
+                                    <span class="temp-value" th:text="${#numbers.formatDecimal(weather.getTemperatureInUnit(selectedUnit), 1, 1)}"></span>
+                                    <span class="temp-unit" th:text="${selectedUnit.symbol}"></span>
+                                </div>
+                                <p class="lead mb-0 text-capitalize" th:text="${weather.description}"></p>
+                                <p class="text-muted mb-0">
+                                    Feels like <span th:text="${#numbers.formatDecimal(weather.getFeelsLikeInUnit(selectedUnit), 1, 1)}"></span><span th:text="${selectedUnit.symbol}"></span>
+                                </p>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="weather-details">
+                                    <div class="detail-item">
+                                        <i class="fas fa-tint"></i>
+                                        <span>Humidity: <strong th:text="${weather.humidity + '%'}"></strong></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-gauge-high"></i>
+                                        <span>Pressure: <strong th:text="${weather.pressure + ' hPa'}"></strong></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-wind"></i>
+                                        <span>Wind: <strong th:text="${#numbers.formatDecimal(weather.windSpeed, 1, 1) + ' m/s ' + weather.windDirectionCardinal}"></strong></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-cloud"></i>
+                                        <span>Cloudiness: <strong th:text="${weather.cloudiness + '%'}"></strong></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-eye"></i>
+                                        <span>Visibility: <strong th:text="${weather.visibility / 1000 + ' km'}"></strong></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-sunrise"></i>
+                                        <span>Sunrise: <strong th:text="${#temporals.format(weather.sunrise, 'HH:mm')}"></strong></span>
+                                    </div>
+                                    <div class="detail-item">
+                                        <i class="fas fa-sunset"></i>
+                                        <span>Sunset: <strong th:text="${#temporals.format(weather.sunset, 'HH:mm')}"></strong></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5-Day Forecast -->
+                <div th:if="${forecasts}" class="forecast-section">
+                    <h3 class="mb-3"><i class="fas fa-calendar-week"></i> 5-Day Forecast</h3>
+                    <div class="row g-3">
+                        <div class="col-md-4 col-lg-2" th:each="forecast : ${forecasts}">
+                            <div class="card forecast-card shadow-sm">
+                                <div class="card-body text-center p-3">
+                                    <h6 class="card-title mb-2" th:text="${#temporals.format(forecast.dateTime, 'EEE, MMM dd')}"></h6>
+                                    <img th:src="@{https://openweathermap.org/img/wn/{icon}@2x.png(icon=${forecast.icon})}"
+                                         alt="Weather icon"
+                                         class="forecast-icon">
+                                    <p class="mb-1 text-capitalize small" th:text="${forecast.description}"></p>
+                                    <div class="forecast-temp">
+                                        <span class="temp-high">
+                                            <i class="fas fa-arrow-up text-danger"></i>
+                                            <span th:text="${#numbers.formatDecimal(forecast.getTempMaxInUnit(selectedUnit), 1, 0)}"></span>°
+                                        </span>
+                                        <span class="temp-low">
+                                            <i class="fas fa-arrow-down text-primary"></i>
+                                            <span th:text="${#numbers.formatDecimal(forecast.getTempMinInUnit(selectedUnit), 1, 0)}"></span>°
+                                        </span>
+                                    </div>
+                                    <small class="text-muted d-block mt-2">
+                                        <i class="fas fa-droplet"></i> <span th:text="${forecast.humidity + '%'}"></span>
+                                    </small>
+                                    <small class="text-muted d-block" th:if="${forecast.pop > 0}">
+                                        <i class="fas fa-cloud-rain"></i> <span th:text="${#numbers.formatPercent(forecast.pop, 1, 0)}"></span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Message (shown when no search) -->
+        <div th:unless="${weather}" class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <div class="card welcome-card shadow">
+                    <div class="card-body p-5">
+                        <i class="fas fa-cloud-sun-rain fa-5x text-primary mb-4"></i>
+                        <h2>Welcome to Weather Dashboard</h2>
+                        <p class="lead">Search for any city to view current weather and 5-day forecast</p>
+                        <p class="text-muted">Try searching for cities like London, New York, Tokyo, or your hometown!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center py-4 mt-5">
+            <p class="text-muted mb-0">
+                <small>Powered by <a href="https://openweathermap.org/" target="_blank">OpenWeatherMap API</a></small>
+            </p>
+            <p class="text-muted mb-0">
+                <small>Built with Spring Boot, Thymeleaf & Bootstrap</small>
+            </p>
+        </footer>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>
