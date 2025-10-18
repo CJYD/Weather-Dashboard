@@ -288,50 +288,6 @@ The project includes comprehensive tests:
 ./mvnw clean verify
 ```
 
-## Design Patterns
-
-This project demonstrates several key design patterns:
-
-### 1. **Strategy Pattern** - Unit Conversion
-```java
-public enum TemperatureUnit {
-    CELSIUS, FAHRENHEIT, KELVIN;
-
-    public double convert(double value) {
-        // Conversion strategy
-    }
-}
-```
-
-### 2. **Builder Pattern** - Request Objects
-```java
-WeatherRequest request = WeatherRequest.builder()
-    .city("London")
-    .countryCode("GB")
-    .unit(TemperatureUnit.CELSIUS)
-    .build();
-```
-
-### 3. **Adapter Pattern** - API Response Mapping
-```java
-// Adapts external API format to internal domain model
-private Weather mapToWeatherDomain(WeatherResponse response) {
-    return Weather.builder()
-        .cityName(response.getCityName())
-        .temperature(response.getMain().getTemperature())
-        .build();
-}
-```
-
-### 4. **Circuit Breaker Pattern** - Resilience
-```java
-@CircuitBreaker(name = "weatherApi", fallbackMethod = "fallback")
-@Retry(name = "weatherApi")
-public WeatherResponse getCurrentWeather(String city) {
-    // API call with resilience
-}
-```
-
 ## Security
 
 - API key stored as environment variable
@@ -364,10 +320,7 @@ This project is licensed under the MIT License.
 
 ## Author
 
-CJ
-- Portfolio: [Your Portfolio URL]
-- LinkedIn: [Your LinkedIn URL]
-- GitHub: [@yourusername](https://github.com/yourusername)
+Christian Duque
 
 ## Acknowledgments
 
